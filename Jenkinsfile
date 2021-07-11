@@ -32,9 +32,11 @@ pipeline {
 				withSonarQubeEnv('SonarQube-Server') {
                     bat "mvn sonar:sonar"
                 }
-                timeout(time: 1, unit: 'HOURS') {
+                sleep(60)
+                timeout(time: 1, unit: 'MINUTES') {
                 	script{
                     	def qg = waitForQualityGate()
+                    	print "Finished waiting"
                         if (qg.status != 'OK') {
                         	error "Pipeline aborted due to quality gate failure: ${qg.status}"
                         }
