@@ -1,7 +1,5 @@
 pipeline {
-    agent {
-        label "master"
-    }
+    agent any
     tools {
          maven "M2_HOME"
     }
@@ -16,12 +14,12 @@ pipeline {
         //DOCKER_CREDENTIALS = "dockerhub_credentials"
     }
     stages {
-		stage("CheckOut") {
+		/**stage("CheckOut") {
 			steps {
 				echo "Checkout the Code Repository..."
 				git  branch: "master", credentialsId: "git.credentials", url: "https://github.com/sreeni72/abc-mule-cicd-demo.git"
 			}
-		}
+		} **/
         stage("Maven Clean Package") {
 			steps {
 				echo "Build the Application..." 
