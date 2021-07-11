@@ -1,8 +1,8 @@
 pipeline {
     agent any
-    /**tools {
-         maven "M2_HOME"
-    }**/
+    options {
+      timeout(30)
+    }
     environment {
 	    BUILD_NUMBER = currentBuild.getNumber()
         NEXUS_VERSION = "nexus3"
@@ -26,15 +26,30 @@ pipeline {
 				bat "mvn clean package"
 			}
 		}
-		stage("SonarQube Report") {
+		stage("SonarQube analysis") {
 			steps {
 				echo "Code Review With SonarQube Rules..." 
 				withSonarQubeEnv('SonarQube-Server') {
                     bat "mvn sonar:sonar"
                 }
+                timeout(time: 1, unit: 'HOURS') {
+                	script{
+                    	def qg = waitForQualityGate()
+                        if (qg.status != 'OK') {
+                        	error "Pipeline aborted due to quality gate failure: ${qg.status}"
+                        }
+                    }
+                }
 			}
 		}
-        stage("Deploy To Nexus") {
+		/**stage("Quality Gate") {
+            steps {
+              timeout(time: 1, unit: 'HOURS') {
+                waitForQualityGate abortPipeline: true
+              }
+            }
+        }**/
+		stage("Deploy To Nexus") {
             steps {
                 // use profile nexus (-P nexus) to deploy to Nexus.
               // withCredentials([usernamePassword(credentialsId: 'nexus_credentials', passwordVariable: 'PASSWORD', usernameVariable: 'USERNAME')]) {
