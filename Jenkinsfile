@@ -1,8 +1,8 @@
 pipeline {
     agent any
-    tools {
+    /**tools {
          maven "M2_HOME"
-    }
+    }**/
     environment {
 	    BUILD_NUMBER = currentBuild.getNumber()
         NEXUS_VERSION = "nexus3"
