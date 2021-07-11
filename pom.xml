@@ -18,7 +18,22 @@
 		<!--  For SonarQube -->
 		<sonar.sources>src/</sonar.sources>
 	</properties>
-
+	<!--  For Nexus -->
+	<profiles>
+      <profile>
+            <id>nexus</id>
+		    <distributionManagement>
+				<snapshotRepository>
+					<id>nexus-repo</id>
+				 	<url>http://your-host:8081/repository/maven-snapshots/</url>
+				</snapshotRepository>
+				<repository>
+				 	<id>nexus-repo</id>
+				 	<url>http://your-host:8081/repository/maven-releases/</url>
+				</repository>
+		    </distributionManagement>
+	    </profile>
+	</profiles>
 	<build>
 		<plugins>
 			<plugin>
@@ -42,8 +57,7 @@
 				<groupId>org.jacoco</groupId>
 				<artifactId>jacoco-maven-plugin</artifactId>
 				<version>0.8.4</version>
-			</plugin>
-			
+			</plugin>			
 		</plugins>
 	</build>
 
@@ -74,6 +88,11 @@
 			<name>MuleSoft Releases Repository</name>
 			<url>https://repository.mulesoft.org/releases/</url>
 			<layout>default</layout>
+		</repository>
+		<!--  For Nexus -->
+		<repository>
+ 			<id>maven-group</id>
+ 			<url>http://localhost:8081/repository/maven-group/</url>
 		</repository>
 	</repositories>
 
