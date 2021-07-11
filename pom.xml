@@ -16,7 +16,7 @@
 		<app.runtime>4.3.0-20210322</app.runtime>
 		<mule.maven.plugin.version>3.5.1</mule.maven.plugin.version>
 		<!--  For SonarQube -->
-		<sonar.sources>/src</sonar.sources>
+		<sonar.sources>src/</sonar.sources>
 	</properties>
 
 	<build>
