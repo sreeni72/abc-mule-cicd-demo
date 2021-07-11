@@ -15,6 +15,8 @@
 
 		<app.runtime>4.3.0-20210322</app.runtime>
 		<mule.maven.plugin.version>3.5.1</mule.maven.plugin.version>
+		<!--  For SonarQube -->
+		<sonar.sources>/src</sonar.sources>
 	</properties>
 
 	<build>
@@ -30,6 +32,18 @@
 				<version>${mule.maven.plugin.version}</version>
 				<extensions>true</extensions>
 			</plugin>
+			<!--  For SonarQube -->
+			<plugin>
+				<groupId>org.sonarsource.scanner.maven</groupId>
+				<artifactId>sonar-maven-plugin</artifactId>
+				<version>3.6.0.1398</version>				
+			</plugin>
+			<plugin>
+				<groupId>org.jacoco</groupId>
+				<artifactId>jacoco-maven-plugin</artifactId>
+				<version>0.8.4</version>
+			</plugin>
+			
 		</plugins>
 	</build>
 
