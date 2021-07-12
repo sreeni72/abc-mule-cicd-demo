@@ -1,7 +1,5 @@
 # Dockerizing Mule EE
-#FROM java:openjdk-8-jdk
-FROM java:8
-#FROM anapsix/alpine-java:8_jdk_nashorn
+FROM anapsix/alpine-java:8_jdk_nashorn
 
 # Define environment variables.
 CMD echo "------ Define Environment Variables --------"
@@ -28,6 +26,7 @@ CMD echo "------ Copy and Install License --------"
 #RUN ${MULE_HOME}/bin/mule -installLicense ${MULE_HOME}/conf/muleLicenseKey.lic
 
 # Deploy mule application
+CMD echo "------ Deploy mule application --------"
 ARG JAR_FILE=*.jar
 COPY ${JAR_FILE} ${MULE_HOME}/apps/
 
