@@ -1,0 +1,20 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: abc-mule-cicd-demo
+spec:
+  selector:
+    matchLabels:
+     app: abc-mule-cicd-demo
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: abc-mule-cicd-demo
+    spec:
+      containers:
+        - name: abc-mule-cicd-demo
+          image: sreeni72/abc-mule-cicd-demo:latest
+          ports:
+            - containerPort: 8081
+              protocol: TCP
