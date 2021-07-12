@@ -96,9 +96,11 @@ pipeline {
                     bat "docker login -u sreeni72 -p $dockerhub_credentials"
                 }
                 bat "docker push sreeni72/${pom.artifactId}:${BUILD_NUMBER}"
-                def image = docker.image("${pom.artifactId}:${BUILD_NUMBER}")
-				image.pull()
-				echo image.id // will print "someImage:latest"
+                script{
+                	def image = docker.image("${pom.artifactId}:${BUILD_NUMBER}")
+					image.pull()
+					echo image.id // will print "someImage:latest"
+				}
     		}
     	}
   }
