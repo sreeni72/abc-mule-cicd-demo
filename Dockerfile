@@ -1,7 +1,7 @@
 # Dockerizing Mule EE
 #FROM java:openjdk-8-jdk
-#FROM java:8
-FROM anapsix/alpine-java:8_jdk_nashorn
+FROM java:8
+#FROM anapsix/alpine-java:8_jdk_nashorn
 
 # Define environment variables.
 CMD echo "------ Define Environment Variables --------"
