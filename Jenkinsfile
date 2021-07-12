@@ -32,7 +32,7 @@ pipeline {
 				withSonarQubeEnv('SonarQube-Server') {
                     bat "mvn sonar:sonar"
                 }
-                sleep(60)
+             /**   sleep(60)
                 timeout(time: 1, unit: 'MINUTES') {
                 	script{
                     	def qg = waitForQualityGate()
@@ -41,16 +41,9 @@ pipeline {
                         	error "Pipeline aborted due to quality gate failure: ${qg.status}"
                         }
                     }
-                }
+                }**/
 			}
 		}
-		/**stage("Quality Gate") {
-            steps {
-              timeout(time: 1, unit: 'HOURS') {
-                waitForQualityGate abortPipeline: true
-              }
-            }
-        }**/
 		stage("Deploy To Nexus") {
             steps {
                 // use profile nexus (-P nexus) to deploy to Nexus.
@@ -94,7 +87,7 @@ pipeline {
         }
         stage("Build Docker Image"){
     		steps {
-    			bat "docker build -t sreeni72/${pom.artifactId}:${BUILD_NUMBER} ."
+    		    bat "docker build -t sreeni72/${pom.artifactId}:${BUILD_NUMBER} ."
     		}
         }
 	   	stage("Push Docker Image"){
@@ -103,6 +96,9 @@ pipeline {
                     bat "docker login -u sreeni72 -p $dockerhub_credentials"
                 }
                 bat "docker push sreeni72/${pom.artifactId}:${BUILD_NUMBER}"
+                def image = docker.image("${pom.artifactId}:${BUILD_NUMBER}")
+				image.pull()
+				echo image.id // will print "someImage:latest"
     		}
     	}
   }
