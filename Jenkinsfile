@@ -2,16 +2,18 @@ pipeline {
     agent any
     options {
       timeout(30)
+      // This is required if you want to clean before build
+      skipDefaultCheckout(true)
     }
     environment {
-	    BUILD_NUMBER = currentBuild.getNumber()
-        NEXUS_VERSION = "nexus3"
-        NEXUS_PROTOCOL = "http"
-        NEXUS_URL = "localhost:8081"
-        NEXUS_REPOSITORY = "maven-snapshots"
-        NEXUS_CREDENTIAL_ID = "nexus.credentials"
-        //DOCKER_REPOSITORY = "sreeni72/${pom.artifactId}-${pom.version}" 
-        //DOCKER_CREDENTIALS = "dockerhub_credentials"
+	    nexus_version = "nexus3"
+        nexus_protocol = "http"
+        nexus_url = "localhost:8081"
+        nexus_repository = "maven-snapshots"
+        nexus_credentials = "nexus.credentials"
+		docker_credentials = "dockerhub.credentials"
+		docker_registry = ""
+        docker_image = ""        
     }
     stages {
 		/**stage("CheckOut") {
@@ -19,10 +21,22 @@ pipeline {
 				echo "Checkout the Code Repository..."
 				git  branch: "master", credentialsId: "git.credentials", url: "https://github.com/sreeni72/abc-mule-cicd-demo.git"
 			}
-		} **/
+		}**/
+		stage("Load Configuration") {
+			steps {
+				echo "Load Configuration..."
+				script {
+				    pom = readMavenPom file: "pom.xml";
+				}
+				echo "*** artifactId: ${pom.artifactId}, group: ${pom.groupId}, packaging: ${pom.packaging}, version: ${pom.version}";
+				echo "Jenkins Job Name : ${env.JOB_NAME}..."
+				echo "Jenkins Build Number : ${env.BUILD_NUMBER}..."   				
+			}
+		}
         stage("Maven Clean Package") {
 			steps {
-				echo "Build the Application..." 
+			    echo "Building ${env.JOB_NAME}..."
+				echo "Build the Mule Application..." 
 				bat "mvn clean package"
 			}
 		}
@@ -46,28 +60,24 @@ pipeline {
 		}
 		stage("Deploy To Nexus") {
             steps {
-                // use profile nexus (-P nexus) to deploy to Nexus.
-              // withCredentials([usernamePassword(credentialsId: 'nexus_credentials', passwordVariable: 'PASSWORD', usernameVariable: 'USERNAME')]) {
-              //      bat "mvn clean deploy -P nexus"
-              // }
-               //bat "mvn clean deploy -P nexus"
+			    // use profile nexus (-P nexus) to deploy to Nexus.
+                //withCredentials([usernamePassword(credentialsId: 'nexus.credentials', passwordVariable: 'nexus_password', usernameVariable: 'nexus_user')]) {
+                //    bat "mvn clean deploy -P nexus"
+                //}
                	script {
-					pom = readMavenPom file: "pom.xml";
-					//filesByGlob = findFiles(glob: "target/*.${pom.packaging}");
 					filesByGlob = findFiles(glob: "target/*.jar");
-					echo "${filesByGlob[0].name} ${filesByGlob[0].path} ${filesByGlob[0].directory} ${filesByGlob[0].length} ${filesByGlob[0].lastModified}"
 					artifactPath = filesByGlob[0].path;
 					artifactExists = fileExists artifactPath;
 					if(artifactExists) {
 						echo "*** File: ${artifactPath}, group: ${pom.groupId}, packaging: ${pom.packaging}, version ${pom.version}";
 						nexusArtifactUploader(
-							nexusVersion: "${NEXUS_VERSION}",
-							protocol: "${NEXUS_PROTOCOL}",
-							nexusUrl: "${NEXUS_URL}",
+							nexusVersion: "${nexus_version}",
+							protocol: "${nexus_protocol}",
+							nexusUrl: "${nexus_url}",
 							groupId: "${pom.groupId}",
 							version: "${pom.version}",
-							repository: "${NEXUS_REPOSITORY}",
-							credentialsId: "${NEXUS_CREDENTIAL_ID}",
+							repository: "${nexus_repository}",
+							credentialsId: "${nexus_credentials}",
 							artifacts: [
 								[artifactId: "${pom.artifactId}",
 								classifier: "",
@@ -85,24 +95,31 @@ pipeline {
 				}
             }
         }
-        stage("Build Docker Image"){
-    		steps {
-    		    bat "docker build -t sreeni72/${pom.artifactId}:${BUILD_NUMBER} ."
-    		}
-        }
-	   	stage("Push Docker Image"){
-    		steps {
-    		    withCredentials([string(credentialsId: "dockerhub_credentials", variable: "dockerhub_credentials")]) {
-                    bat "docker login -u sreeni72 -p $dockerhub_credentials"
-                }
-                bat "docker push sreeni72/${pom.artifactId}:${BUILD_NUMBER}"
-                script{
-                	def image = docker.image("${pom.artifactId}:${BUILD_NUMBER}")
-					image.pull()
-					echo image.id // will print "someImage:latest"
+        stage('Build Docker Image') {
+			steps{
+			    script {
+				    withCredentials([usernamePassword(credentialsId: 'dockerhub.credentials', passwordVariable: 'docker_password', usernameVariable: 'docker_user')]) {
+					    docker_registry = "${docker_user}/${pom.artifactId}"
+				    }
+				    docker_image = docker.build docker_registry + ":${BUILD_NUMBER}"
+			    }
+			}
+		}
+		stage('Push Docker Image') {
+			steps{
+				script {
+					docker.withRegistry( '', docker_credentials ) {
+						docker_image.push()
+					}
 				}
-    		}
-    	}
-  }
-  
+				bat "docker rmi $docker_registry:${BUILD_NUMBER}"
+			}
+		}
+	}
+    post {
+        // Clean after build
+        always {
+            cleanWs()
+        }
+    }  
 }
